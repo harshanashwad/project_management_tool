@@ -56,8 +56,30 @@ export default function ProjectDashboard() {
 
   // Delete mutation
   const [deleteProject, { loading: deleting }] = useMutation(DELETE_PROJECT, {
+    update(cache, { data }) {
+      if (data?.deleteProject?.success) {
+        // Read the current projects from cache
+        const existingProjects: any = cache.readQuery({
+          query: GET_PROJECTS,
+          variables: { organizationSlug: selectedOrgSlug },
+        });
+
+        if (existingProjects?.projects) {
+          // Filter out the deleted project
+          const updatedProjects = existingProjects.projects.filter(
+            (p: Project) => p.id !== deletingProject?.id
+          );
+
+          // Write the updated projects back to cache
+          cache.writeQuery({
+            query: GET_PROJECTS,
+            variables: { organizationSlug: selectedOrgSlug },
+            data: { projects: updatedProjects },
+          });
+        }
+      }
+    },
     refetchQueries: [
-      { query: GET_PROJECTS, variables: { organizationSlug: selectedOrgSlug } },
       { query: GET_PROJECT_STATS, variables: { organizationSlug: selectedOrgSlug } },
     ],
   });
