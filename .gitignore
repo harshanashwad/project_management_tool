@@ -72,3 +72,33 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+
+# Claude AI assistant files
+.claude/
+
+# Development credentials and setup docs (not needed in production)
+CREDENTIALS.md
+backend/GRAPHQL_EXAMPLES.md
+backend/SETUP.md
+backend/test_graphql.py
+
+# Docker (optional - uncomment if not using Docker)
+docker-compose.yml
+
+# Extra package files at root (npm should be in frontend/)
+/package.json
+/package-lock.json
+
+# Generated views (empty Django files)
+backend/apps/*/views.py
+
+# Task index (auto-generated)
+frontend/src/components/tasks/index.ts
+
+# Frontend config files (already configured)
+frontend/.gitignore
+frontend/README.md
+frontend/eslint.config.js
+
+# Frontend assets (if not used)
+frontend/src/assets/

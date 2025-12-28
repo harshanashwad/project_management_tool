@@ -57,29 +57,34 @@ export default function ProjectDashboard() {
   // Delete mutation
   const [deleteProject, { loading: deleting }] = useMutation(DELETE_PROJECT, {
     update(cache, { data }) {
-      if (data?.deleteProject?.success) {
-        // Read the current projects from cache
-        const existingProjects: any = cache.readQuery({
-          query: GET_PROJECTS,
-          variables: { organizationSlug: selectedOrgSlug },
-        });
+      if (!data?.deleteProject?.success || !deletingProject) return;
 
-        if (existingProjects?.projects) {
-          // Filter out the deleted project
-          const updatedProjects = existingProjects.projects.filter(
-            (p: Project) => p.id !== deletingProject?.id
-          );
+      cache.modify({
+        fields: {
+          projects(existingRefs = [], { readField, args }) {
+            if (args?.organizationSlug && args.organizationSlug !== selectedOrgSlug) {
+              return existingRefs;
+            }
+            return existingRefs.filter(
+              (ref: any) => readField('id', ref) !== deletingProject.id
+            );
+          },
+        },
+      });
 
-          // Write the updated projects back to cache
-          cache.writeQuery({
-            query: GET_PROJECTS,
-            variables: { organizationSlug: selectedOrgSlug },
-            data: { projects: updatedProjects },
-          });
-        }
-      }
+      cache.evict({
+        id: cache.identify({ __typename: 'Project', id: deletingProject.id }),
+      });
+      cache.gc();
     },
     refetchQueries: [
+      {
+        query: GET_PROJECTS,
+        variables: {
+          organizationSlug: selectedOrgSlug,
+          status: statusFilter || null,
+        },
+      },
       { query: GET_PROJECT_STATS, variables: { organizationSlug: selectedOrgSlug } },
     ],
   });
